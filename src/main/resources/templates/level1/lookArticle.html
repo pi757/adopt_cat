@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>猫咪领养平台</title>
+    <script src="../../static/js/vue.js"></script>
+    <script src="../../static/js/axios.js"></script>
+    <script src="../../static/components/topSide.js"></script>
+    <link rel="stylesheet" href="../../static/css/topSide.css">
+    <link rel="stylesheet" href="../../static/css/index.css" type="text/css">
+    <script src="../static/js/index.js"></script>
+    <style type="text/css">
+        [v-cloak] {
+            display: none;
+        }
+
+        .el-tooltip__popper {
+            display: none;
+
+        }
+
+        body {
+            font-family: "Microsoft Yahei";
+        }
+    </style>
+</head>
+<body>
+<div id="lookArticleContent" style="height: 100%" v-cloak>
+    <top-side>
+        <div>
+            <h1 style="text-align: center">小知识</h1>
+            <el-table
+                    :data="tableData"
+                    style="width: 100%" stripe :row-style="rowClass">
+                <el-table-column label="文章标题" prop="articleTitle" width="220"></el-table-column>
+                <el-table-column label="文章内容" prop="articleContent" width="400" show-overflow-tooltip></el-table-column>
+                <el-table-column label="发布人" prop="user.username" width="140"></el-table-column>
+                <el-table-column label="评论数" prop="articleCommentCount" width="80"></el-table-column>
+                <el-table-column label="发布时间" prop="articleDate"></el-table-column>
+                <el-table-column
+                        align="right">
+                    <template slot="header" slot-scope="scope">
+                        <el-button type="primary" round size="mini" @click="getAll()">查询所有</el-button>
+                        <el-input
+                                v-model="search"
+                                size="mini"
+                                placeholder="搜索标题" @keyup.enter.native='searchAll()'></el-input>
+                    </template>
+                    <template slot-scope="scope">
+                        <el-button
+                                size="mini"
+                                @click="handleEdit(scope.$index, scope.row)">查看详情
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pagination">
+                <el-pagination
+                        background
+                        layout="total, prev, pager, next"
+                        :current-page="query.pageIndex"
+                        :page-size="query.pageSize"
+                        :total="dataLength"
+                        @current-change="handleCurrentChange"
+                ></el-pagination>
+            </div>
+        </div>
+    </top-side>
+</div>
+
+</body>
+<script type="text/javascript">
+    var doSearch = async function (url, currentPage, pageSize) {
+        return await axios.get(url, {
+            params: {
+                param: lookArticleContent.search,
+                currentPage: currentPage,
+                pageSize: pageSize,
+            }
+        }).then(result => {
+            lookArticleContent.tableData = result.data.list;
+            lookArticleContent.dataLength = result.data.total;
+        })
+    }
+    var lookArticleContent = new Vue({
+        el: '#lookArticleContent',
+        data: {
+            province: '',
+            tableData: [],
+            search: '',
+            dataLength: 0,
+            allData: [],
+            mode: '',
+            query: {
+                pageIndex: 1,
+                pageSize: 5,
+            }
+        },
+        methods: {
+            handleEdit(index, row) {
+                const info = JSON.stringify(row)
+                sessionStorage.setItem("info", info)
+                window.location.href = "/l1/toShow"
+            },
+            async getData(currentPage, pageSize) {
+                await axios.get('/l1/articleAll', {
+                    params: {
+                        currentPage: currentPage,
+                        pageSize: pageSize,
+                    }
+                }).then(result => {
+                    this.tableData = result.data.list;
+                    this.dataLength = result.data.total;
+                })
+            },
+            async handleCurrentChange(value) {
+                let mode = this.mode;
+                this.query.pageIndex = value;//获得当前页码
+                if (mode === '') {
+                    await this.getData(this.query.pageIndex, this.query.pageSize);
+                } else if (mode === '根据标题') {
+                    this.query.pageIndex = 1;
+                    await doSearch('/l1/articleByTitle', this.query.pageIndex, this.query.pageSize)
+                } else {
+                    this.$message({
+                        message: '错误',
+                        type: 'warning'
+                    });
+                }
+            },
+            getAll() {
+                this.getData(1, 5);
+                this.mode = '';
+                return true;
+            },
+            searchAll() {
+                if (this.search === '') {
+                    this.$message({
+                        message: '搜索内容不能为空哦',
+                        type: 'warning'
+                    });
+                    return false;
+                }
+                doSearch('/l1/articleByTitle', this.query.pageIndex, this.query.pageSize)
+                this.mode = '根据标题'
+            }
+        },
+        mounted: function () {
+            this.getData(this.query.pageIndex, this.query.pageSize);
+        },
+        computed: {
+            rowClass(row, index) {
+                return {"height": "7.1vh"}
+            }
+        },
+    })
+</script>
+</html>

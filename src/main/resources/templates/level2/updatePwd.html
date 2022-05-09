@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>猫咪领养平台</title>
+    <script src="../../static/js/vue.js"></script>
+    <script src="../../static/js/axios.js"></script>
+    <script src="../../static/components/topSide.js"></script>
+    <link rel="stylesheet" href="../../static/css/topSide.css">
+    <link rel="stylesheet" href="../../static/css/index.css" type="text/css">
+    <script src="../static/js/index.js"></script>
+    <style type="text/css">
+        [v-cloak] {
+            display: none;
+        }
+
+        body {
+            font-family: "Microsoft Yahei";
+        }
+    </style>
+</head>
+<body class="layui-layout-body">
+<div id="updateContent" style="height: 100%" v-cloak>
+    <top-side>
+        <div>
+            <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                <el-form-item label="原始密码" prop="oldPwd">
+                    <el-input type="password" v-model="ruleForm.oldPwd" autocomplete="off"
+                              style="width: 200px"></el-input>
+                </el-form-item>
+                <el-form-item label="密码" prop="userPwd">
+                    <el-input type="password" v-model="ruleForm.userPwd" autocomplete="off"
+                              style="width: 300px"></el-input>
+                </el-form-item>
+                <el-form-item label="确认密码" prop="checkPass">
+                    <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"
+                              style="width: 300px"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitForm('ruleForm')">立即注册</el-button>
+                    <el-button @click="resetForm('ruleForm')">重置</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+    </top-side>
+</div>
+</body>
+<script type="text/javascript">
+    var validatePass3 = (rule, value, callback) => {
+        if (value === '') {
+            callback(new Error('请输入原始密码'));
+        } else {
+            if (updateContent.ruleForm.checkPass !== '') {
+                updateContent.$refs.ruleForm.validateField('checkPass');
+            }
+            callback();
+        }
+    };
+    var validatePass = (rule, value, callback) => {
+        if (value === '') {
+            callback(new Error('请输入新密码'));
+        } else if (value === updateContent.ruleForm.oldPwd) {
+            callback(new Error("新密码跟旧密码相同"))
+        } else {
+            if (updateContent.ruleForm.userPwd !== '') {
+                updateContent.$refs.ruleForm.validateField('checkPass');
+            }
+            callback();
+        }
+    };
+    var validatePass2 = (rule, value, callback) => {
+        if (value === '') {
+            callback(new Error('请再次输入密码'));
+        } else if (value !== updateContent.ruleForm.userPwd) {
+            callback(new Error('两次输入密码不一致!'));
+        } else {
+            callback();
+        }
+    }
+</script>
+<script type="text/javascript">
+
+    let updateContent = new Vue({
+        el: '#updateContent',
+        data: {
+            userId: JSON.parse(sessionStorage.getItem("user")).userId,
+            ruleForm: {
+                oldPwd: '',
+                userPwd: '',
+                checkPass: '',
+            },
+            rules: {
+                oldPwd: [
+                    {validator: validatePass3, trigger: 'blur'}
+                ],
+                userPwd: [
+                    {validator: validatePass, trigger: 'blur'}
+                ],
+                checkPass: [
+                    {validator: validatePass2, trigger: 'blur'}
+                ],
+            }
+        },
+        methods: {
+            submitForm(formName) {
+                let vm = this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        axios.put('/l2/updatePwd', {
+                            pwd: {
+                                userId: this.userId,
+                                oldPwd: vm.ruleForm.oldPwd,
+                                newPwd: vm.ruleForm.userPwd,
+                            }
+                        }).then(result => {
+                            if (result.data) {
+                                this.$alert('修改密码成功，请记住你的新密码', '成功', {
+                                    confirmButtonText: '确定',
+                                    callback: action => {
+                                        sessionStorage.clear();
+                                        window.location.href = '/toLogin?uId=' + this.userId;
+                                    }
+                                });
+
+
+                            } else {
+                                this.$message({
+                                    showClose: true,
+                                    message: '修改密码失败，可能是原始密码错误',
+                                    type: 'error'
+                                });
+                            }
+                        })
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            },
+        }
+
+    })
+</script>
+</html>

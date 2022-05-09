@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>猫咪领养平台</title>
+    <script src="../../static/js/vue.js"></script>
+    <script src="../../static/js/axios.js"></script>
+    <script src="../../static/components/topSide.js"></script>
+    <link rel="stylesheet" href="../../static/css/topSide.css">
+    <link rel="stylesheet" href="../../static/css/index.css" type="text/css">
+    <script src="../static/js/index.js"></script>
+    <style type="text/css">
+        [v-cloak] {
+            display: none;
+        }
+
+        .el-tooltip__popper {
+            display: none;
+
+        }
+
+        body {
+            font-family: "Microsoft Yahei";
+        }
+    </style>
+</head>
+<body>
+<!--0是未审核，1是通过，2是违规-->
+<div id="checkContent" style="height: 100%" v-cloak>
+    <top-side>
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+            <el-tab-pane label="猫咪领养审核" name="findPeopleCheck">
+                <div>
+                    <h1 style="text-align: center">猫咪领养审核</h1>
+                    <el-table
+                            :data="tables"
+                            style="width: 100%" stripe>
+                        <el-table-column label="文章标题" prop="articleTitle" width="220"></el-table-column>
+                        <el-table-column label="省份" prop="provinceName.provinceName" width="80"></el-table-column>
+                        <el-table-column label="猫猫性别" prop="catSex" width="100"></el-table-column>
+                        <el-table-column label="发布人" prop="user.username" width="140"></el-table-column>
+                        <el-table-column label="评论数" prop="articleCommentCount" width="80"></el-table-column>
+                        <el-table-column label="发布时间" prop="articleDate"></el-table-column>
+                        <el-table-column
+                                align="right">
+                            <template slot="header" slot-scope="scope">
+                                <el-input
+                                        v-model="search"
+                                        size="mini"
+                                        placeholder="搜索"></el-input>
+                            </template>
+                            <template slot-scope="scope">
+                                <el-button
+                                        size="mini"
+                                        @click="handleEdit(scope.$index, scope.row)">查看详情
+                                </el-button>
+                                <el-button
+                                        size="mini"
+                                        type="primary"
+                                        @click="handlePass(scope.$index, scope.row,activeName)">过审
+                                </el-button>
+                                <el-button
+                                        size="mini"
+                                        type="danger"
+                                        @click="handleDelete(scope.$index, scope.row,activeName)">不过审
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <div class="pagination">
+                        <el-pagination
+                                background
+                                layout="total, prev, pager, next"
+                                :current-page="query.pageIndex"
+                                :page-size="query.pageSize"
+                                :total="dataLength"
+                                @current-change="handleCurrentChange"
+                        ></el-pagination>
+                    </div>
+                </div>
+            </el-tab-pane>
+            <el-tab-pane label="寻猫启事审核" name="findCatCheck">
+                <div>
+                    <h1 style="text-align: center">寻猫启事审核</h1>
+                    <el-table
+                            :data="tables"
+                            style="width: 100%" stripe>
+                        <el-table-column label="文章标题" prop="articleTitle" width="220"></el-table-column>
+                        <el-table-column label="丢失省份" prop="provinceName.provinceName" width="80"></el-table-column>
+                        <el-table-column label="准确地址" prop="lostLocation" width="150"></el-table-column>
+                        <el-table-column label="猫猫性别" prop="catSex" width="100"></el-table-column>
+                        <el-table-column label="发布人" prop="user.username" width="140"></el-table-column>
+                        <el-table-column label="评论数" prop="articleCommentCount" width="80"></el-table-column>
+                        <el-table-column label="发布时间" prop="articleDate"></el-table-column>
+                        <el-table-column
+                                align="right">
+                            <template slot="header" slot-scope="scope">
+                                <el-input
+                                        v-model="search"
+                                        size="mini"
+                                        placeholder="搜索"></el-input>
+                            </template>
+                            <template slot-scope="scope">
+                                <el-button
+                                        size="mini"
+                                        @click="handleEdit(scope.$index, scope.row)">查看详情
+                                </el-button>
+                                <el-button
+                                        size="mini"
+                                        type="primary"
+                                        @click="handlePass(scope.$index, scope.row,activeName)">过审
+                                </el-button>
+                                <el-button
+                                        size="mini"
+                                        type="danger"
+                                        @click="handleDelete(scope.$index, scope.row,activeName)">不过审
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <div class="pagination">
+                        <el-pagination
+                                background
+                                layout="total, prev, pager, next"
+                                :current-page="query.pageIndex"
+                                :page-size="query.pageSize"
+                                :total="dataLength"
+                                @current-change="handleCurrentChange"
+                        ></el-pagination>
+                    </div>
+                </div>
+            </el-tab-pane>
+            <el-tab-pane label="小知识审核" name="showArticleCheck">
+                <div>
+                    <h1 style="text-align: center">小知识审核</h1>
+                    <el-table
+                            :data="tables"
+                            style="width: 100%" stripe :row-style="rowClass">
+                        <el-table-column label="文章标题" prop="articleTitle" width="220"></el-table-column>
+                        <el-table-column label="文章内容" prop="articleContent" width="300"
+                                         show-overflow-tooltip></el-table-column>
+                        <el-table-column label="发布人" prop="user.username" width="140"></el-table-column>
+                        <el-table-column label="评论数" prop="articleCommentCount" width="80"></el-table-column>
+                        <el-table-column label="发布时间" prop="articleDate"></el-table-column>
+                        <el-table-column
+                                align="right">
+                            <template slot="header" slot-scope="scope">
+                                <el-input
+                                        v-model="search"
+                                        size="mini"
+                                        placeholder="搜索"></el-input>
+                            </template>
+                            <template slot-scope="scope">
+                                <el-button
+                                        size="mini"
+                                        @click="handleEdit2(scope.$index, scope.row)">查看详情
+                                </el-button>
+                                <el-button
+                                        size="mini"
+                                        type="primary"
+                                        @click="handlePass(scope.$index, scope.row,activeName)">过审
+                                </el-button>
+                                <el-button
+                                        size="mini"
+                                        type="danger"
+                                        @click="handleDelete(scope.$index, scope.row,activeName)">不过审
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <div class="pagination">
+                        <el-pagination
+                                background
+                                layout="total, prev, pager, next"
+                                :current-page="query.pageIndex"
+                                :page-size="query.pageSize"
+                                :total="dataLength"
+                                @current-change="handleCurrentChange"
+                        ></el-pagination>
+                    </div>
+                </div>
+            </el-tab-pane>
+        </el-tabs>
+    </top-side>
+</div>
+</body>
+<script type="text/javascript">
+    var pass = async function (url, articleId, isCheck) {
+        return axios.put(url, {
+            articleId: articleId,
+            isCheck: isCheck,
+        });
+    }
+
+    function getQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]);
+        return null;
+    }
+
+    var checkContent = new Vue({
+        el: '#checkContent',
+        data: {
+            //用户信息
+            user: JSON.parse(sessionStorage.getItem("user")),
+            //默认选项卡
+            activeName: '',
+            //所有市
+            provinces: JSON.parse(sessionStorage.getItem("provinces")),
+            //根据id给文章显示的市区
+            province: '',
+            //表单数据
+            tableData: [],
+            //所有数据
+            allData: [],
+            //搜索栏
+            search: '',
+            temp: [],
+            //搜索到的数据
+            searchData: [],
+            //表单数据长度
+            dataLength: 0,
+            //分页的
+            query: {
+                pageIndex: 1,
+                pageSize: 5,
+            },
+        },
+        methods: {
+            //选项卡改变
+            handleClick(tab, event) {
+                if (tab.name === "findPeopleCheck") {
+                    this.findPeopleCheck()
+                } else if (tab.name === "findCatCheck") {
+                    this.findCatCheck()
+                } else {
+                    this.findArticleCheck()
+                }
+            },
+            //点击查看详情
+            handleEdit(index, row) {
+                axios.get('/l1/imageUrl', {
+                    params: {
+                        userId: row.user.userId,
+                        articleId: row.articleId,
+                        catImage: row.catImage,
+                    }
+                }).then(result => {
+                    row.catImage = result.data;
+                    const info = JSON.stringify(row)
+                    sessionStorage.setItem("info", info)
+                    window.location.href = "/l1/toShow"
+                })
+            },
+            //文章的查看详情
+            handleEdit2(index, row) {
+                const info = JSON.stringify(row)
+                sessionStorage.setItem("info", info)
+                window.location.href = "/l1/toShow"
+            },
+            //违规信息
+            async handleDelete(index, row, info) {
+                let start = (this.query.pageIndex - 1) * this.query.pageSize;
+                let end = start + this.query.pageSize;
+                var temp;
+                await this.$confirm('此操作无法撤回, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    if (info === 'findPeopleCheck') {
+                        pass('/l3/isCheckFindPeople', row.articleId, 2).then(result => {
+                            if (result.data) {
+                                this.tableData.splice(index, 1)
+                                this.allData.splice(start + index, 1)
+                                checkContent.tableData = this.allData.slice(start, end);
+                                if (checkContent.tableData.length === 0) {
+                                    start = (this.query.pageIndex - 2) * this.query.pageSize;
+                                    checkContent.tableData = this.allData.slice(start, end);
+                                }
+                            }
+                        })
+                    } else if (info === 'findCatCheck') {
+                        pass('/l3/isCheckFindCat', row.articleId, 2).then(result => {
+                            if (result.data) {
+                                this.tableData.splice(index, 1)
+                                this.allData.splice(start + index, 1)
+                                checkContent.tableData = this.allData.slice(start, end);
+                                if (checkContent.tableData.length === 0) {
+                                    start = (this.query.pageIndex - 2) * this.query.pageSize;
+                                    checkContent.tableData = this.allData.slice(start, end);
+                                }
+                            }
+                        })
+                    } else {
+                        pass('/l3/isCheckFindArticle', row.articleId, 2).then(result => {
+                            if (result.data) {
+                                this.tableData.splice(index, 1)
+                                this.allData.splice(start + index, 1)
+                                checkContent.tableData = this.allData.slice(start, end);
+                                if (checkContent.tableData.length === 0) {
+                                    start = (this.query.pageIndex - 2) * this.query.pageSize;
+                                    checkContent.tableData = this.allData.slice(start, end);
+                                }
+                            }
+                        })
+                    }
+                    this.$message({
+                        type: 'success',
+                        message: '驳回成功!'
+                    });
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消驳回'
+                    });
+                });
+            },
+            //通过
+            async handlePass(index, row, info) {
+                let start = (this.query.pageIndex - 1) * this.query.pageSize;
+                let end = start + this.query.pageSize;
+                var temp;
+                if (info === 'findPeopleCheck') {
+                    await pass('/l3/isCheckFindPeople', row.articleId, 1).then(result => {
+                        if (result.data) {
+                            this.tableData.splice(index, 1)
+                            this.allData.splice(start + index, 1)
+                            checkContent.tableData = this.allData.slice(start, end);
+                            if (checkContent.tableData.length === 0) {
+                                start = (this.query.pageIndex - 2) * this.query.pageSize;
+                                checkContent.tableData = this.allData.slice(start, end);
+                            }
+                        }
+                    })
+                } else if (info === 'findCatCheck') {
+                    await pass('/l3/isCheckFindCat', row.articleId, 1).then(result => {
+                        if (result.data) {
+                            this.tableData.splice(index, 1)
+                            this.allData.splice(start + index, 1)
+                            checkContent.tableData = this.allData.slice(start, end);
+                            if (checkContent.tableData.length === 0) {
+                                start = (this.query.pageIndex - 2) * this.query.pageSize;
+                                checkContent.tableData = this.allData.slice(start, end);
+                            }
+                        }
+                    })
+                } else {
+                    await pass('/l3/isCheckFindArticle', row.articleId, 1).then(result => {
+                        if (result.data) {
+                            this.tableData.splice(index, 1)
+                            this.allData.splice(start + index, 1)
+                            checkContent.tableData = this.allData.slice(start, end);
+                            if (checkContent.tableData.length === 0) {
+                                start = (this.query.pageIndex - 2) * this.query.pageSize;
+                                checkContent.tableData = this.allData.slice(start, end);
+                            }
+                        }
+                    })
+                }
+            },
+            //获取未审核猫咪领养的所有文章
+            findPeopleCheck: function () {
+                console.log('获取领养')
+                var info = axios.get("/l3/findPeopleAllCheck");
+                return info.then(result => {
+                    checkContent.allData = result.data;
+                    let start = (this.query.pageIndex - 1) * this.query.pageSize;
+                    let end = start + this.query.pageSize;
+                    checkContent.tableData = this.allData.slice(start, end);
+                })
+
+            },
+            //获取所有未审核寻猫启事
+            findCatCheck: function () {
+                console.log("获取寻猫")
+                var info = axios.get("/l3/findCatAllCheck");
+                return info.then(result => {
+                    checkContent.allData = result.data;
+                    let start = (this.query.pageIndex - 1) * this.query.pageSize;
+                    let end = start + this.query.pageSize;
+                    checkContent.tableData = this.allData.slice(start, end);
+                })
+
+            },
+            //根据id获取所有的小知识
+            findArticleCheck: function () {
+                console.log('获取文章')
+                var info = axios.get("/l3/findArticleAllCheck");
+                return info.then(result => {
+                    checkContent.allData = result.data;
+                    let start = (this.query.pageIndex - 1) * this.query.pageSize;
+                    let end = start + this.query.pageSize;
+                    checkContent.tableData = this.allData.slice(start, end);
+                })
+
+            },
+            //点击页码
+            handleCurrentChange(value) {
+                this.query.pageIndex = value;//获得当前页码
+                let start = (this.query.pageIndex - 1) * this.query.pageSize;
+                let end = start + this.query.pageSize;
+                if (this.search) {
+                    checkContent.temp = this.searchData.slice(start, end);
+                } else {
+                    checkContent.tableData = this.allData.slice(start, end);
+                }
+            }
+        },
+
+        mounted() {
+            this.activeName = getQueryString("activeName") == null ? 'findPeopleCheck' : getQueryString("activeName");
+            if (this.activeName === 'findPeopleCheck') {
+                this.findPeopleCheck();
+            } else if (this.activeName === 'findCatCheck') {
+                this.findCatCheck();
+            } else {
+                this.findArticleCheck();
+            }
+        },
+        watch: {
+            search: function (val) {
+                this.temp = [];
+            }
+        },
+        computed: {
+            //计算搜索的
+            tables() {
+                const search = this.search
+                this.dataLength = 0
+                if (search) {
+                    this.searchData = [];
+                    let flag;
+                    this.allData.filter(data => {
+                        if (this.activeName === "findPeopleCheck") {
+                            flag = (data.articleTitle + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.user.username + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.provinceName.provinceName + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.articleDate + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.catSex + "").toLowerCase().includes(search.toLowerCase());
+                        } else if (this.activeName === "findCatCheck") {
+                            flag = (data.articleTitle + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.user.username + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.provinceName.provinceName + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.articleDate + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.lostLocation + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.catSex + "").toLowerCase().includes(search.toLowerCase());
+                        } else if (this.activeName === "showArticleCheck") {
+                            flag = (data.articleTitle + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.user.username + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.articleDate + "").toLowerCase().includes(search.toLowerCase())
+                        }
+                        if (flag) {
+                            ++this.dataLength;
+                            if (this.temp.length < this.query.pageSize) {
+                                this.temp.push(data);
+                            }
+                            this.searchData.push(data);
+                        }
+                    });
+                    while (
+                        (this.temp.length > 1 && this.temp[1] === this.searchData[0]) ||
+                        (this.temp.length > 2 && this.temp[2] === this.searchData[0]) ||
+                        (this.temp.length > 3 && this.temp[3] === this.searchData[0]) ||
+                        (this.temp.length > 4 && this.temp[4] === this.searchData[0])
+                        ) {
+                        this.temp.pop();
+                    }
+                    return this.temp;
+                }
+                this.dataLength = this.allData.length
+                return this.tableData
+
+            },
+            //设置文章
+            rowClass(row, index) {
+                return {"height": "7.1vh"}
+            }
+        }
+    })
+</script>
+</html>

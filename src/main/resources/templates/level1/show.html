@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>猫咪领养平台</title>
+    <script src="../../static/js/vue.js"></script>
+    <script src="../../static/js/axios.js"></script>
+    <script src="../../static/components/topSide.js"></script>
+    <link rel="stylesheet" href="../../static/css/topSide.css">
+    <link rel="stylesheet" href="../../static/css/index.css" type="text/css">
+    <script src="../static/js/index.js"></script>
+    <link href="../../static/css/show.css" rel="stylesheet" type="text/css">
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+        body {
+            background-color: #F0F0F0;
+        }
+
+        * {
+            border: 0px;
+            padding: 0px;
+            margin: 0px;
+            font-size: 14px;
+        }
+
+        p {
+            text-indent: 2em;
+            line-height: 1.5em;
+            letter-spacing: 0.2em;
+        }
+
+        a:hover {
+            color: red;
+            text-decoration: none;
+        }
+
+        #menu img {
+            height: 90px;
+        }
+
+        #menu ul {
+            list-style-type: none;
+        }
+
+        #menu ul li {
+            float: left;
+            height: 90px;
+            line-height: 90px;
+            margin-right: 50px;
+        }
+
+        #menu ul li a {
+            color: black;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        #menu ul li a:hover {
+            color: #65b5ff;
+            text-decoration: none
+        }
+
+        #box p {
+            text-align: center;
+        }
+
+        #bottom-content p {
+            margin-top: 10px;
+        }
+
+        #blog ul {
+            list-style-type: none;
+        }
+
+        #blog ul li {
+            background-color: white;
+            padding: 20px;
+            width: 100%;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .blog-right img {
+            width: 280px;
+            height: 200px;
+        }
+
+        .blog-left p {
+            color: gray;
+        }
+
+        .blog-left img {
+            width: 20px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .page a {
+            border: 1px solid #71b0bb;
+            text-decoration: none;
+            margin: 5px;
+            padding: 5px 10px;
+        }
+
+        .page a:link, .page a:visited {
+            color: #000000;
+        }
+
+        .page a:hover, .page a:active {
+            color: #FFF;
+            background-color: #bbac5c;
+        }
+
+        #blog-content {
+            width: 940px;
+            overflow: hidden;
+            padding: 30px;
+            background-color: white;
+            margin: 0 auto;
+            border-top: 2px solid #e2b709;
+            margin-top: 30px;
+        }
+
+        .siztitle {
+            font-size: 28px;
+            text-align: center;
+
+        }
+
+        #blog-content p {
+            color: black;
+        }
+
+        #blog-content img {
+            width: 20px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .rev {
+            border-left: 2px solid #e2b709;
+            width: 100%;
+            overflow: hidden;
+
+            margin-top: 20px;
+            padding-left: 10px;
+
+        }
+
+        .content {
+            margin-top: 20px;
+            line-height: 28px;
+        }
+
+        .pl-p {
+            width: 1000px;
+            overflow: hidden;
+            margin: 0 auto;
+            margin-top: 20px;
+            font-size: 20px;
+            padding-left: 20px;
+        }
+
+        #pl-div {
+            width: 920px;
+            padding: 40px;
+            background-color: white;
+            overflow: hidden;
+            margin: 0 auto;
+            margin-top: 30px;
+        }
+
+        #pl-left {
+            float: left;
+            width: 100px;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        #pl-right {
+            float: left;
+            margin-left: 30px;
+            width: 700px;
+            overflow: hidden;
+        }
+
+        .pl-txt {
+            border: 1px solid #777777;
+            padding: 20px
+        }
+
+        .pl-input2 {
+            background-color: #65b5ff;
+            color: white;
+            width: 110px;
+            height: 40px;
+            margin-left: 580px
+        }
+
+    </style>
+</head>
+<body>
+<div id="showContent" style="height: 100% " v-cloak>
+    <top-side>
+
+        <div>
+            <el-page-header @back="goBack" content="详情页面">
+            </el-page-header>
+            <div>
+                <div id="blog-content">
+                    <div v-if="info.catAge">
+                        <h1 style="color: darkorange; text-align: center">{{info.articleTitle}}</h1>
+                        <br/>
+                        <div style=" font-size:12px;color:#ccc; text-align:center; line-height:30px;"></div>
+                        <table width="91%" border="0" style="background:#eeeeee;margin:0 auto;border-radius:5px;">
+                            <tr>
+                                <td width="50">&#160;</td>
+                                <td width="20%">&#160;</td>
+                                <td width="20%">&#160;</td>
+                                <td width="20%">&#160;</td>
+                                <td width="20%">&#160;</td>
+                                <td width="50">&#160;</td>
+                            </tr>
+                            <tr>
+                                <td>&#160;</td>
+                                <td>年 龄：{{info.catAge}}</td>
+                                <td>性 别：{{info.catSex}}</td>
+                                <td>省 份：{{info.provinceName.provinceName}}</td>
+                                <td v-if="info.lostLocation"></td>
+                                <td v-else>免费领养：是</td>
+                                <td>&#160;</td>
+                            </tr>
+                            <tr>
+                                <td>&#160;</td>
+                                <td>&#160;</td>
+                                <td>&#160;</td>
+                                <td>&#160;</td>
+                                <td>&#160;</td>
+                                <td>&#160;</td>
+                            </tr>
+                            <tr>
+                                <td>&#160;</td>
+                                <td v-if="info.lostLocation">请求人：{{info.user.username}}</td>
+                                <td v-else> 送养人：{{info.user.username}}</td>
+                                <td>联系方式:{{info.contact}}</td>
+                                <td colspan="2">发布时间：{{info.articleDate}}</td>
+                                <td>&#160;</td>
+                                <td>&#160;</td>
+                            </tr>
+                            <tr>
+                                <td>&#160;</td>
+                                <td>&#160;</td>
+                                <td>&#160;</td>
+                                <td>&#160;</td>
+                                <td>&#160;</td>
+                                <td>&#160;</td>
+                            </tr>
+                        </table>
+                        <!-- 内容 -->
+                        <div style="margin:30px 30px 30px 60px;width: 80%">
+                            <span v-if="info.lostLocation" style="font-size:14px; text-align: left;">
+                            领养联系方式：{{info.contact}}<br/><br/>
+                                猫咪描述：<p>{{info.articleContent}}</p><br/>
+                            丢失地址：{{info.lostLocation}}
+                            </span>
+                            <span v-else style="font-size:14px; text-align: left; ">
+                            领养联系方式：{{info.contact}}<br/><br/>
+                                        猫咪描述：<p>{{info.articleContent}}</p><br/>
+                                        领养要求：<p>{{info.claim}}</p>
+                            </span>
+                            <br/>
+                            <p>
+                                <span><img v-if="info.catImage" :src="info.catImage" class="avatar"
+                                           style="width: 500px ;height: auto"></span></p>
+                        </div>
+                    </div>
+                    <!--                        文章-->
+                    <div v-else>
+                        <h1 style="color: darkorange; text-align: center">{{info.articleTitle}}</h1>
+                        <br/>
+                        <span style="margin-top: 50px;color: gray"><i class="el-icon-user-solid"></i>{{info.user.username}}
+                                <i class="el-icon-date" style="margin-left: 20px"></i>{{info.articleDate}}</span>
+                        <br/>
+                        <span class="rev" style="color:gray;">内容</span>
+                        <br/>
+                        <p class="content">{{info.articleContent}}</p>
+                    </div>
+                </div>
+                <span class="pl-p" style="margin-left: 120px"><i class="el-icon-chat-line-round"></i>评论</span>
+                <br/>
+                <div id="pl-div">
+                    <div class="container">
+                        <!--        头评论-->
+                        <div class="write-reply" @click="showCommentInput()">
+                            <i class="el-icon-edit"></i>
+                            <span class="add-comment">添加新评论</span>
+                        </div>
+                        <transition name="fade">
+                            <div class="input-wrapper" v-if="showItemId === '757'">
+                                <el-input class="gray-bg-input"
+                                          v-model.trim="inputComment"
+                                          type="textarea"
+                                          :rows="3"
+                                          autofocus
+                                          placeholder="写下你的评论">
+                                </el-input>
+                                <div class="btn-control">
+                                    <span class="cancel" @click="cancel">取消</span>
+                                    <el-button class="btn" type="success" round @click="commitComment()">确定</el-button>
+                                </div>
+                            </div>
+                        </transition>
+                        <br/>
+                        <!--        遍历开始-->
+                        <div class="comment" v-for="(item , i ) in comments" :key="i">
+                            <div class="info">
+                                <img class="avatar" :src="item.user.userImage" width="36" height="36"/>
+                                <div class="right">
+                                    <div class="name">{{item.user.username}}</div>
+                                    <div class="date">{{item.commentDate}}</div>
+                                </div>
+                            </div>
+                            <div class="content">{{item.commentContent}}</div>
+                            <div class="control">
+                                    <span class="like" :class="{active: item.isLike}" @click="likeClick(item)">
+                                      <i class="iconfont icon-like"></i>
+                                      <span class="like-num">{{item.likeNum > 0 ? item.likeNum + '人赞' : '赞'}}</span>
+                                    </span>
+                                <span class="comment-reply" @click="showCommentInput(item)">
+                                      <i class="iconfont icon-comment"></i>
+                                      <span>回复</span>
+                                    </span>
+                            </div>
+                            <div class="reply">
+                                <!--                    子遍历开始-->
+                                <div class="item" v-for="(reply ,j) in item.reply" :key="j">
+                                    <div class="reply-content">
+                                        <span class="from-name">{{reply.fromUser.username}}</span><span>: </span>
+                                        <span class="to-name">@{{reply.toUser.username}}</span>
+                                        <span>{{reply.commentContent}}</span>
+                                    </div>
+                                    <div class="reply-bottom">
+                                        <span>{{reply.commentDate}}</span>
+                                        <span class="reply-text" @click="showCommentInput(item,reply)">
+                                                <i class="iconfont icon-comment"></i>
+                                                <span>回复</span>
+                                            </span>
+                                    </div>
+                                    <transition name="fade">
+                                        <div class="input-wrapper" v-if="showItemId === reply.commentId">
+                                            <el-input class="gray-bg-input"
+                                                      v-model.trim="inputComment"
+                                                      type="textarea"
+                                                      :rows="3"
+                                                      autofocus
+                                                      :placeholder='remind'>
+                                            </el-input>
+                                            <div class="btn-control">
+                                                <span class="cancel" @click="cancel">取消</span>
+                                                <el-button class="btn" type="success" round @click="commitComment(i,j)">
+                                                    确定
+                                                </el-button>
+                                            </div>
+                                        </div>
+                                    </transition>
+                                </div>
+                                <transition name="fade">
+                                    <div class="input-wrapper" v-if="showItemId === item.commentId">
+                                        <el-input class="gray-bg-input"
+                                                  v-model.trim="inputComment"
+                                                  type="textarea"
+                                                  :rows="3"
+                                                  autofocus
+                                                  :placeholder="remind">
+                                        </el-input>
+                                        <div class="btn-control">
+                                            <span class="cancel" @click="cancel">取消</span>
+                                            <el-button class="btn" type="success" round @click="commitComment(i)">确定
+                                            </el-button>
+                                        </div>
+                                    </div>
+                                </transition>
+                            </div>
+                        </div>
+                        <div class="pagination">
+                            <el-pagination
+                                    background
+                                    layout="total, prev, pager, next"
+                                    :current-page="query.pageIndex"
+                                    :page-size="query.pageSize"
+                                    :total="commentsLength"
+                                    @current-change="handleCurrentChange"
+                            ></el-pagination>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </top-side>
+</div>
+</body>
+<script type="text/javascript">
+    let temp = sessionStorage.getItem('info');
+
+    function getInfo() {
+        if (temp && temp.length !== 0) {
+            return JSON.parse(temp)
+        } else {
+            return null;
+        }
+    };
+
+    function nowTime() {
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = date.getMonth();
+        let day = date.getDate();
+        let hours = date.getHours();
+        let min = date.getMinutes();
+        let seconds = date.getSeconds();
+        if (seconds.toString().length < 2) {
+            seconds = '0' + seconds;
+        }
+        return '' + year + "-" + month + "-" + day + " " + hours + ":" + min + ":" + seconds
+    }
+
+    const clickoutside = {
+        // 初始化指令
+        bind(el, binding, vnode) {
+            function documentHandler(e) {
+                // 这里判断点击的元素是否是本身，是本身，则返回
+                if (el.contains(e.target)) {
+                    return false;
+                }
+                // 判断指令中是否绑定了函数
+                if (binding.expression) {
+                    // 如果绑定了函数 则调用那个函数，此处binding.value就是handleClose方法
+                    binding.value(e);
+                }
+            }
+
+            // 给当前元素绑定个私有变量，方便在unbind中可以解除事件监听
+            el.vueClickOutside = documentHandler;
+            document.addEventListener('click', documentHandler);
+        },
+        update() {
+        },
+        unbind(el, binding) {
+            // 解除事件监听
+            document.removeEventListener('click', el.vueClickOutside);
+            delete el.vueClickOutside;
+        },
+    };
+
+</script>
+<script type="text/javascript">
+    var likeClick = 0;
+    let showContent = new Vue({
+        el: '#showContent',
+        data: {
+            info: getInfo(),
+            user: JSON.parse(sessionStorage.getItem("user")) == null ? '' : JSON.parse(sessionStorage.getItem("user")),
+            inputComment: '',
+            showItemId: '',
+            required: true,
+            remind: '',
+            comments: [],
+            commentsLength: 0,
+            query: {
+                pageIndex: 1,
+                pageSize: 2,
+            }
+        },
+        methods: {
+            goBack() {
+                window.history.back(-1);
+            },
+            /**
+             * 点赞
+             */
+            likeClick(item) {
+                if (!this.user) {
+                    this.$message({
+                        showClose: true,
+                        message: '请先登录在点赞',
+                        type: 'error'
+                    });
+                    return;
+                }
+                if (item.isLike === null) {
+                    Vue.$set(item, "isLike", true);
+                    axios.put('/l2/increase', {
+                        commentId: item.commentId,
+                        userId: this.user.userId,
+                    }).then(result => {
+                        item.likeNum++
+                    })
+                } else {
+                    if (item.isLike) {
+                        axios.put('/l2/decrease', {
+                            commentId: item.commentId,
+                        }).then(result => {
+                            item.likeNum--;
+                            likeClick++;
+                            if (likeClick % 5 === 0) {
+                                this.$alert('请勿频繁点赞取消', '警告', {
+                                    confirmButtonText: '确定',
+                                });
+                            }
+                        })
+                    } else {
+                        axios.put('/l2/increase', {
+                            commentId: item.commentId,
+                        }).then(result => {
+                            item.likeNum++
+                        })
+                    }
+                    item.isLike = !item.isLike;
+                }
+            },
+
+            /**
+             * 点击取消按钮
+             */
+            cancel() {
+                this.showItemId = ''
+            },
+
+            /**
+             * 提交评论
+             */
+            commitComment(i, j) {
+                if (!this.user) {
+                    this.$message({
+                        showClose: true,
+                        message: '请先登录在评论',
+                        type: 'warning'
+                    });
+                    return;
+                }
+                if (!this.inputComment) {
+                    this.$message({
+                        showClose: true,
+                        message: '评论不能为空',
+                        type: 'warning'
+                    });
+                    return;
+                }
+                if (i != null && j != null) {
+                    axios.post('/l2/addCommentSon', {
+                        parentId: this.comments[i].commentId,
+                        fromId: this.user.userId,
+                        toId: this.comments[i].reply[j].fromUser.userId,
+                        commentContent: this.inputComment,
+                    }).then(result => {
+                        result.data.commentDate = nowTime();
+                        result.data.fromUser = this.user;
+                        result.data.toUser = this.comments[i].reply[j].fromUser;
+                        if (!this.comments[i].reply) {
+                            this.comments[i].reply = [];
+                        }
+                        this.comments[i].reply.push(result.data)
+                    })
+                } else if (i != null) {
+                    axios.post('/l2/addCommentSon', {
+                        parentId: this.comments[i].commentId,
+                        fromId: this.user.userId,
+                        toId: this.comments[i].user.userId,
+                        commentContent: this.inputComment,
+                    }).then(result => {
+                        result.data.commentDate = nowTime();
+                        result.data.fromUser = this.user;
+                        result.data.toUser = this.comments[i].user;
+                        if (!this.comments[i].reply) {
+                            this.comments[i].reply = [];
+                        }
+                        this.comments[i].reply.push(result.data)
+                    })
+                } else {
+                    axios.post('/l2/addCommentParent', {
+                        articleId: this.info.articleId,
+                        userId: this.user.userId,
+                        likeNum: 0,
+                        commentContent: this.inputComment,
+                    }).then(result => {
+
+                        this.handleCurrentChange(this.query.pageIndex)
+                    })
+                }
+                this.inputComment = '';
+                this.showItemId = '';
+
+            },
+
+            /**
+             * 点击评论按钮显示输入框
+             * item: 当前大评论
+             * reply: 当前回复的评论
+             */
+            showCommentInput(item, reply) {
+                if (reply) {
+                    this.remind = "@" + reply.fromUser.username + " ";
+                    this.showItemId = reply.commentId
+                } else if (item) {
+                    this.remind = "@" + item.user.username + " ";
+                    this.showItemId = item.commentId
+                } else {
+                    this.inputComment = "";
+
+                    this.showItemId = '757'
+                }
+            },
+            async getData(currentPage, pageSize) {
+                await axios.get('/l1/comment', {
+                    params: {
+                        articleId: this.info.articleId,
+                        currentPage: currentPage,
+                        pageSize: pageSize,
+                    }
+                }).then(result => {
+                    this.comments = result.data.list;
+                    this.commentsLength = result.data.total;
+                })
+            },
+            async handleCurrentChange(value) {
+                this.query.pageIndex = value;//获得当前页码
+                await this.getData(this.query.pageIndex, this.query.pageSize);
+            }
+        },
+        created() {
+            this.getData(this.query.pageIndex, this.query.pageSize)
+        }
+    })
+</script>
+</html>

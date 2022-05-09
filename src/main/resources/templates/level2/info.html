@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>猫咪领养平台</title>
+    <script src="../../static/js/vue.js"></script>
+    <script src="../../static/js/axios.js"></script>
+    <script src="../../static/components/topSide.js"></script>
+    <link rel="stylesheet" href="../../static/css/topSide.css">
+    <link rel="stylesheet" href="../../static/css/index.css" type="text/css">
+    <script src="../../static/js/index.js"></script>
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+        input[type="file"] {
+            display: none;
+        }
+
+        .avatar-uploader .el-upload {
+            border: 1px dashed #d9d9d9;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+
+        .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 178px;
+            height: 178px;
+            line-height: 178px;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 178px;
+            height: 178px;
+            display: block;
+        }
+    </style>
+</head>
+<body class="layui-layout-body">
+<div id="infoContent" style="height: 100%">
+    <top-side>
+        <h1 style="text-align: center">个人信息页</h1>
+        <div>
+            <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                <el-form-item label="名称" prop="userName">
+                    <el-input v-model="ruleForm.userName" style="width: 200px" :disabled="isBan"></el-input>
+                </el-form-item>
+                <el-form-item label="生日" required>
+                    <el-col :span="11">
+                        <el-form-item prop="userBirthday">
+                            <el-date-picker type="date" placeholder="选择日期" format="yyyy-MM-dd" value-format="yyyy-MM-dd"
+                                            v-model="ruleForm.userBirthday" style="width: 250px;"
+                                            :disabled="isBan"></el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="头像" ref="uploadElement" prop="userImage">
+                    <el-input v-model="ruleForm.userImage" v-if="false"></el-input>
+                    <el-upload
+                            :disabled="isBan"
+                            class="avatar-uploader"
+                            ref="upload"
+                            accept="[.bmp,.jpg,.png,.tif,.gif,.pcx,.tga,.exif,.fpx,.svg,.psd,.cdr,.pcd,.dxf,.ufo,.eps,.ai,.raw]"
+                            :show-file-list="false"
+                            action="/l2/updateUser"
+                            :before-upload="beforeUpload"
+                            :on-change="handleChange"
+                            :auto-upload="false"
+                            :on-success='success'
+                            :data="ruleForm">
+                        <img v-if="ruleForm.userImage" :src="ruleForm.userImage" class="avatar">
+                        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                    </el-upload>
+                </el-form-item>
+                <el-form-item v-if="isBan">
+                    <el-button type="primary" @click="changeBan()">修改</el-button>
+                </el-form-item>
+                <el-form-item v-else>
+                    <el-button type="primary" @click="submitForm('ruleForm')">提交</el-button>
+                    <el-button @click="changeBan()">取消修改</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+    </top-side>
+</div>
+</body>
+<script type="text/javascript">
+    let infoContent = new Vue({
+        el: '#infoContent',
+        data: {
+            isBan: true,
+            user: JSON.parse(sessionStorage.getItem("user")),
+            ruleForm: {
+                userId: JSON.parse(sessionStorage.getItem("user")).userId,
+                userName: JSON.parse(sessionStorage.getItem("user")).username,
+                userBirthday: JSON.parse(sessionStorage.getItem("user")).userBirthday,
+                userImage: JSON.parse(sessionStorage.getItem("user")).userImage,
+            },
+            rules: {
+                userName: [
+                    {required: true, message: '请输入名称', trigger: 'blur'},
+                    {min: 2, max: 8, message: '长度在 2 到 8 个字符', trigger: 'blur'}
+                ],
+                userBirthday: [
+                    {required: true, message: '请选择日期', trigger: 'change'}
+                ],
+                userImage: [
+                    {required: true, message: '请上传头像', trigger: 'blur'},
+                ],
+            }
+        },
+        methods: {
+            submitForm(formName) {
+                let vm = this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        if (
+                            this.ruleForm.userName === this.user.username &&
+                            this.ruleForm.userBirthday === this.user.userBirthday &&
+                            this.ruleForm.userImage === this.user.userImage
+                        ) {
+                            this.$message({
+                                showClose: true,
+                                message: '请先修改在提交',
+                                type: 'warning'
+                            });
+                            return false;
+                        } else if (this.ruleForm.userImage === this.user.userImage) {
+                            axios.put('/l2/updateUser', {
+                                userId: vm.ruleForm.userId,
+                                userName: vm.ruleForm.userName,
+                                userBirthday: vm.ruleForm.userBirthday,
+                            }).then(result => {
+                                this.$message({
+                                    showClose: true,
+                                    message: '修改完毕',
+                                    type: 'success'
+                                });
+                                let u = {};
+                                let temp = JSON.parse(sessionStorage.getItem("user"));
+                                u.userId = temp.userId;
+                                u.username = vm.ruleForm.userName;
+                                u.userBirthday = vm.ruleForm.userBirthday;
+                                u.userPwd = temp.userPwd;
+                                u.userDate = temp.userDate;
+                                u.userAge = temp.userAge;
+                                u.userImage = temp.userImage;
+                                sessionStorage.setItem('user', JSON.stringify(u))
+                                location.reload();
+                            })
+                        } else {
+                            vm.$refs.upload.submit();
+                            console.log('上传完毕')
+
+                        }
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            handleChange(file, fileList) {
+                this.ruleForm.userImage = URL.createObjectURL(file.raw);
+            },
+
+            beforeUpload(file) {
+                return true
+            },
+            success(response) {
+                let u = {};
+                let temp = JSON.parse(sessionStorage.getItem("user"));
+                u.userId = temp.userId;
+                u.username = this.ruleForm.userName;
+                u.userBirthday = this.ruleForm.userBirthday;
+                u.userPwd = temp.userPwd;
+                u.userDate = temp.userDate;
+                u.userAge = temp.userAge;
+                u.userImage = response.userImage;
+                sessionStorage.setItem('user', JSON.stringify(u))
+                this.$message({
+                    showClose: true,
+                    message: '修改完毕',
+                    type: 'success'
+                });
+                location.reload();
+            },
+            error() {
+                this.$message({
+                    showClose: true,
+                    message: '修改失败',
+                    type: 'error'
+                });
+            },
+            changeBan() {
+                if (!this.isBan) {
+                    console.log("复原");
+                    let temp = this.user;
+                    this.ruleForm.userName = temp.username;
+                    this.ruleForm.userBirthday = temp.userBirthday;
+                    this.ruleForm.userImage = temp.userImage;
+                }
+                this.isBan = !this.isBan;
+            }
+        },
+
+    })
+</script>
+</html>

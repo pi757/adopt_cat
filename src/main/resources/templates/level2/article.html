@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>猫咪领养平台</title>
+    <script src="../../static/js/vue.js"></script>
+    <script src="../../static/js/axios.js"></script>
+    <script src="../../static/components/topSide.js"></script>
+    <link rel="stylesheet" href="../../static/css/topSide.css">
+    <link rel="stylesheet" href="../../static/css/index.css" type="text/css">
+    <script src="../static/js/index.js"></script>
+    <style type="text/css">
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div id="articleContent" style="height: 100%" v-cloak>
+    <top-side>
+        <div>
+            <h1 style="text-align: center">求领养</h1>
+            <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                <el-form-item label="标题" prop="articleTitle">
+                    <el-input v-model="ruleForm.articleTitle"></el-input>
+                </el-form-item>
+                <el-form-item label="内容" prop="articleContent">
+                    <el-input type="textarea" v-model="ruleForm.articleContent" rows="20"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitForm('ruleForm')">立即发布</el-button>
+                    <el-button @click="resetForm('ruleForm')">重置</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+    </top-side>
+</div>
+</body>
+<script type="text/javascript">
+
+    var articleContent = new Vue({
+        el: '#articleContent',
+        data: {
+            ruleForm: {
+                userId: JSON.parse(sessionStorage.getItem("user")) == null ? '' : JSON.parse(sessionStorage.getItem("user")).userId,
+                articleTitle: '',
+                articleContent: '',
+            },
+            rules: {
+                articleTitle: [
+                    {required: true, message: '请输入文章标题', trigger: 'blur'},
+                    {min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur'}
+                ],
+                articleContent: [
+                    {required: true, message: '请填写内容', trigger: 'blur'}
+                ],
+            }
+        },
+        methods: {
+            submitForm(formName) {
+                let vm = this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        axios.post("/l2/article", vm.ruleForm).then(result => {
+                            if (result.data) {
+                                this.$message({
+                                    showClose: true,
+                                    message: '发布成功',
+                                    type: 'success'
+                                });
+                                window.location.href = '/';
+                            } else {
+                                this.$message({
+                                    showClose: true,
+                                    message: '发布失败',
+                                    type: 'error'
+                                });
+                            }
+                        })
+                    } else {
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            },
+        },
+    })
+</script>
+</html>

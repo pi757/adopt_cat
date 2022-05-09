@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>猫咪领养平台</title>
+    <script src="../../static/js/vue.js"></script>
+    <script src="../../static/js/axios.js"></script>
+    <script src="../../static/components/topSide.js"></script>
+    <link rel="stylesheet" href="../../static/css/topSide.css">
+    <link rel="stylesheet" href="../../static/css/index.css" type="text/css">
+    <script src="../static/js/index.js"></script>
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+        input[type="file"] {
+            display: none;
+        }
+
+        .avatar-uploader .el-upload {
+            border: 1px dashed #d9d9d9;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+
+        .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 178px;
+            height: 178px;
+            line-height: 178px;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 178px;
+            height: 178px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div id="findCatContent" style="height: 100%" v-cloak>
+    <top-side>
+        <div>
+            <h1 style="text-align: center">求寻找</h1>
+            <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+                <el-form-item label="标题" prop="articleTitle">
+                    <el-input v-model="ruleForm.articleTitle"></el-input>
+                </el-form-item>
+                <el-form-item label="性别" prop="catSex">
+                    <el-radio-group v-model="ruleForm.catSex">
+                        <el-radio label="小王子"></el-radio>
+                        <el-radio label="小公主"></el-radio>
+                        <el-radio label="不清楚"></el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="年龄" prop="catAge">
+                    <el-input type="age" v-model.number="ruleForm.catAge" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="省份" prop="province">
+                    <el-select v-model="ruleForm.province" filterable prop="province">
+                        <el-option v-for="item in provinces" :key="item.provinceId"
+                                   :label="item.provinceName" :value="item.provinceId">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="丢失地址" prop="lostLocation">
+                    <el-input type="textarea" v-model="ruleForm.lostLocation"></el-input>
+                </el-form-item>
+                <el-form-item label="丢失时间" required>
+                    <el-col :span="11">
+                        <el-form-item prop="catLostDate">
+                            <el-date-picker type="date" placeholder="选择日期" format="yyyy-MM-dd" value-format="yyyy-MM-dd"
+                                            v-model="ruleForm.catLostDate" style="width: 250px;"></el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="联系方式" prop="contact">
+                    <el-input v-model="ruleForm.contact"></el-input>
+                </el-form-item>
+                <el-form-item label="上传猫咪图片" ref="uploadElement" prop="catImage">
+                    <el-input v-model="ruleForm.catImage" v-if="false"></el-input>
+                    <el-upload
+                            class="avatar-uploader"
+                            ref="upload"
+                            accept="[.bmp,.jpg,.png,.tif,.gif,.pcx,.tga,.exif,.fpx,.svg,.psd,.cdr,.pcd,.dxf,.ufo,.eps,.ai,.raw]"
+                            :show-file-list="false"
+                            action="/l2/findCat"
+                            :before-upload="beforeUpload"
+                            :on-change="handleChange"
+                            :auto-upload="false"
+                            :on-success='success'
+                            :data="ruleForm">
+                        <img v-if="ruleForm.catImage" :src="ruleForm.catImage" class="avatar">
+                        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                    </el-upload>
+                </el-form-item>
+
+                <el-form-item label="猫咪描述" prop="articleContent">
+                    <el-input type="textarea" v-model="ruleForm.articleContent"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitForm('ruleForm')">立即发布</el-button>
+                    <el-button @click="resetForm('ruleForm')">重置</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+    </top-side>
+</div>
+</body>
+<script type="text/javascript">
+
+    var findCatContent = new Vue({
+        el: '#findCatContent',
+        data: {
+            provinces: JSON.parse(sessionStorage.getItem("provinces")),
+            ruleForm: {
+                userId: JSON.parse(sessionStorage.getItem("user")) == null ? '' : JSON.parse(sessionStorage.getItem("user")).userId,
+                articleTitle: '',
+                catSex: '不清楚',
+                catAge: '',
+                province: '',
+                lostLocation: '',
+                articleContent: '',
+                catImage: '',
+                contact: '',
+                catLostDate: '',
+            },
+            rules: {
+                articleTitle: [
+                    {required: true, message: '请输入文章标题', trigger: 'blur'},
+                    {min: 3, max: 10, message: '长度在 3 到 10 个字符', trigger: 'blur'}
+                ],
+                catSex: [
+                    {required: true, message: '请选择性别', trigger: 'change'}
+                ],
+                catAge: [
+                    {required: true, message: '年龄不能为空'}
+                    , {type: 'number', message: '年龄必须为数字值'}
+                ],
+                province: [
+                    {required: true, message: '请选择省份', trigger: 'change'}
+                ],
+                contact: [
+                    {required: true, message: '请输入联系方式', trigger: 'blur'},
+                    {min: 3, max: 30, message: '长度在 3 到 30 个字符', trigger: 'blur'}
+                ],
+                lostLocation: [
+                    {required: true, message: '请填写丢失地址', trigger: 'blur'}
+                ],
+                articleContent: [
+                    {required: true, message: '请描述一下猫咪', trigger: 'blur'}
+                ],
+                catLostDate: [
+                    {required: true, message: '请选择日期', trigger: 'change'}
+                ],
+                catImage: [
+                    {required: true, message: '请上传猫咪图片', trigger: 'blur'},
+                ],
+            }
+        },
+        methods: {
+            submitForm(formName) {
+                let vm = this;
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        vm.$refs.upload.submit();
+                    } else {
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+                this.ruleForm.catImage = '';
+            },
+            handleChange(file, fileList) {
+                this.ruleForm.catImage = URL.createObjectURL(file.raw);
+            },
+
+            beforeUpload(file) {
+                return true
+            },
+            success() {
+                this.$message({
+                    showClose: true,
+                    message: '发布成功',
+                    type: 'success'
+                });
+
+                window.location.href = "/"
+            },
+            error() {
+                this.$message({
+                    showClose: true,
+                    message: '发布失败',
+                    type: 'error'
+                });
+            }
+
+
+        },
+    })
+</script>
+</html>

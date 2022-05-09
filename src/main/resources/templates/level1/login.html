@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>猫咪领养平台</title>
+    <script src="../../static/js/vue.js"></script>
+    <script src="../../static/js/qs.js"></script>
+    <script src="../../static/js/axios.js"></script>
+    <script src="../../static/components/topSide.js"></script>
+    <link rel="stylesheet" href="../../static/css/topSide.css">
+    <link rel="stylesheet" href="../../static/css/index.css" type="text/css">
+    <script src="../static/js/index.js"></script>
+    <style type="text/css">
+        [v-cloak] {
+            display: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+
+        #box {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #container {
+            margin: 200px auto;
+            height: 400px;
+            width: 600px;
+            background-color: #161d2b;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0px 0px 25px black;
+            transform-style: preserve-3d;
+            perspective: 500px;
+            transform: translateZ(100px);
+        }
+
+        #con-text h1 {
+            position: absolute;
+            top: 20px;
+            left: 42%;
+            font-weight: 700;
+            font-size: 30px;
+            color: white;
+            font-family: "Adobe Garamond Pro", serif;
+        }
+
+        #name {
+            position: absolute;
+            top: 140px;
+            left: 50px;
+
+        }
+
+        .info {
+            height: 30px;
+            width: 500px;
+            /* 只留下面边框*/
+            border: white 1px;
+            border-style: none none solid none; /* 上右下左*/
+
+            background-color: transparent; /* 透明*/
+            outline: none;
+            color: white;
+            font-weight: 300;
+            font-size: 20px;
+            font-family: "Adobe Myungjo Std M", serif;
+
+        }
+
+        #pwd {
+            position: absolute;
+            top: 220px;
+            left: 50px;
+        }
+
+        input::placeholder {
+            color: white;
+            font-weight: 300;
+            font-size: 20px;
+            font-family: "Adobe Myungjo Std M", serif;
+        }
+
+        #bon {
+            position: absolute;
+            top: 300px;
+            left: 60px;
+            transform: translate(-50%, -50%);
+            width: fit-content;
+            height: auto;
+
+        }
+
+        button {
+            width: 120px;
+            height: 60px;
+            border: none;
+            /*background-color: transparent;*/
+            position: absolute;
+            text-align: center;
+            color: #2ba9db;
+            font-size: 18px;
+            font-family: "Adobe 楷体 Std R", sans-serif;
+            outline: none;
+            cursor: pointer;
+            border-radius: 2px;
+            background: linear-gradient(to right, #12d5e5, #12d5e5) no-repeat;
+            background-size: 0% 100%;
+            overflow: hidden;
+
+        }
+
+        button span {
+            position: absolute;
+            display: block;
+        }
+
+        button span:nth-child(1) {
+            height: 3px;
+            width: 60px;
+            top: 0px;
+            left: -60px;
+            background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(76, 255, 255, 0.97));
+            border-top-right-radius: 1px;
+            border-bottom-right-radius: 1px;
+            animation: span1 2s linear infinite;
+        }
+
+        @keyframes span1 {
+            0% {
+                left: -120px
+            }
+            100% {
+                left: 120px;
+            }
+        }
+
+        button span:nth-child(2) {
+            height: 60px;
+            width: 3px;
+            top: -60px;
+            right: 0px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(76, 255, 255, 0.97));
+            border-bottom-left-radius: 1px;
+            border-bottom-right-radius: 1px;
+            animation: span2 2s linear infinite;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes span2 {
+            0% {
+                top: -60px;
+            }
+            100% {
+                top: 60px;
+            }
+        }
+
+        button span:nth-child(3) {
+            height: 3px;
+            width: 60px;
+            right: -60px;
+            bottom: 0px;
+            background: linear-gradient(to left, rgba(0, 0, 0, 0), rgba(76, 255, 255, 0.97));
+            border-top-left-radius: 1px;
+            border-bottom-left-radius: 1px;
+            animation: span3 2s linear infinite;
+            animation-delay: 2s;
+        }
+
+        @keyframes span3 {
+            0% {
+                right: -120px;
+            }
+            100% {
+                right: 120px;
+            }
+        }
+
+        button span:nth-child(4) {
+            height: 60px;
+            width: 3px;
+            bottom: -60px;
+            left: 0px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0), rgba(76, 255, 255, 0.97));
+            border-top-right-radius: 1px;
+            border-top-left-radius: 1px;
+            animation: span4 2s linear infinite;
+            animation-delay: 3.5s;
+        }
+
+        @keyframes span4 {
+            0% {
+                bottom: -60px;
+            }
+            100% {
+                bottom: 60px;
+            }
+        }
+
+        button:hover {
+            transition: all 0.5s;
+            background-size: 100% 100%;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
+            box-shadow: rgba(116, 255, 234, 0.97) 0px 0px 30px;
+        }
+
+        button:hover span {
+            animation-play-state: running;
+
+        }
+
+    </style>
+</head>
+<body>
+<div id="loginContent" v-cloak>
+    <top-side>
+        <div id="container">
+            <div id="con-text">
+                <h1>登 录</h1>
+                <input type="text" id="name" class="info" placeholder="请输入账号" autocomplete="off" v-model="uId">
+                <br/>
+                <input type="password" id="pwd" class="info" placeholder="请输入密码" v-model="uPwd" @keyup.enter="sub()">
+                <div id="bon">
+                    <button @click="sub()" type="button">登 录
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </top-side>
+</div>
+</body>
+<script type="text/javascript">
+    async function query(uId, uPwd) {
+        return axios.post('/l1/login', Qs.stringify({
+            username: uId,
+            password: uPwd,
+        }), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+    };
+
+    function getQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]);
+        return null;
+    }
+
+    var loginContent = new Vue({
+        el: '#loginContent',
+        data: {
+            uId: getQueryString("uId"),
+            uPwd: ''
+
+        },
+        methods: {
+            sub: function () {
+                if (this.uId.length < 1) {
+                    this.$message({
+                        showClose: true,
+                        message: '用户名不能为空',
+                        type: 'warning'
+                    });
+                } else if (this.uPwd.length < 1) {
+                    this.$message({
+                        showClose: true,
+                        message: '密码不能为空',
+                        type: 'warning'
+                    });
+                } else {
+                    var result = query(this.uId, this.uPwd).then(result => {
+                        if (result.data.flag === 0) {
+                            sessionStorage.setItem("user", JSON.stringify(result.data.user));
+
+                            window.location.href = '/';
+                        } else if (result.data.flag === 1) {
+                            this.$message({
+                                showClose: true,
+                                message: '你已被拉入黑名单，请联系管理员',
+                                type: 'warning'
+                            });
+                        } else {
+                            this.$message({
+                                showClose: true,
+                                message: '用户名或者密码错误',
+                                type: 'error'
+                            });
+                        }
+                    }, function () {
+                        this.$message({
+                            showClose: true,
+                            message: '服务器出错啦',
+                            type: 'error'
+                        });
+                    })
+
+                }
+            }
+        },
+        mounted: function () {
+            let msg = getQueryString('msg');
+            if (msg === 'sb') {
+                this.$message({
+                    showClose: true,
+                    message: '请先登录',
+                    type: 'warning'
+                });
+            }
+        }
+    });
+</script>
+</html>

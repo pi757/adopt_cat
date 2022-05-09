@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>猫咪领养平台</title>
+    <script src="../../static/js/vue.js"></script>
+    <script src="../../static/js/axios.js"></script>
+    <script src="../../static/components/topSide.js"></script>
+    <link rel="stylesheet" href="../../static/css/topSide.css">
+    <link rel="stylesheet" href="../../static/css/index.css" type="text/css">
+    <script src="../static/js/index.js"></script>
+    <style type="text/css">
+        [v-cloak] {
+            display: none;
+        }
+
+        .el-tooltip__popper {
+            display: none;
+
+        }
+
+        body {
+            font-family: "Microsoft Yahei";
+        }
+    </style>
+</head>
+<body>
+
+<div id="allUserContent" style="height: 100%" v-cloak>
+    <top-side>
+        <div>
+            <h1 style="text-align: center">猫咪领养</h1>
+            <el-table
+                    :data="tables"
+                    style="width: 100%" stripe>
+                <el-table-column label="用户账号" prop="userId" width="180"></el-table-column>
+                <el-table-column label="用户名" prop="username" width="80"></el-table-column>
+                <el-table-column label="用户年龄" prop="userBirthday" :formatter="countAge" width="100"></el-table-column>
+                <el-table-column label="文章总数" prop="articleAll" width="80"></el-table-column>
+                <el-table-column label="违规文章数" prop="articleNoPass" width="120"></el-table-column>
+                <el-table-column label="状态" prop="mode" width="100">
+                    <template scope="scope">
+                        <span v-if="scope.row.mode===0" style="color: green">正常</span>
+                        <span v-else style="color: red">黑名单</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="创建时间" prop="userDate"></el-table-column>
+                <el-table-column
+                        align="right">
+                    <template slot="header" slot-scope="scope">
+                        <el-input
+                                v-model="search"
+                                size="mini"
+                                placeholder="搜索"></el-input>
+                    </template>
+                    <template slot-scope="scope">
+                        <el-button
+                                size="mini"
+                                type="success"
+                                @click="handleOut(scope.$index, scope.row)" v-if="scope.row.mode===1">拉出黑名单
+                        </el-button>
+                        <el-button
+                                size="mini"
+                                type="warning"
+                                @click="handleIn(scope.$index, scope.row)" v-else>拉入黑名单
+                        </el-button>
+                        <el-button
+                                size="mini"
+                                type="danger"
+                                @click="handleDelete(scope.$index, scope.row)">删除用户
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pagination">
+                <el-pagination
+                        background
+                        layout="total, prev, pager, next"
+                        :current-page="query.pageIndex"
+                        :page-size="query.pageSize"
+                        :total="dataLength"
+                        @current-change="handleCurrentChange"
+                ></el-pagination>
+            </div>
+        </div>
+    </top-side>
+</div>
+</body>
+<script type="text/javascript">
+    var deleteUser = async function (url, userId) {
+        return await axios.delete(url, {
+            params: {
+                userId: userId
+            }
+        })
+    }
+    var updateMode = async function (url, userId, mode) {
+        return axios.put(url, {
+            userId: userId,
+            mode: mode
+        });
+    }
+
+    var allUserContent = new Vue({
+        el: '#allUserContent',
+        data: {
+            //用户信息
+            user: JSON.parse(sessionStorage.getItem("user")),
+            //表单数据
+            tableData: [],
+            //所有数据
+            allData: [],
+            temp: [],
+            //搜索到的数据
+            searchData: [],
+            //搜索栏
+            search: '',
+            //表单数据长度
+            dataLength: 0,
+            //分页的
+            query: {
+                pageIndex: 1,
+                pageSize: 5,
+            },
+        },
+        methods: {
+            //删除信息
+            async handleDelete(index, row, info) {
+                let start = (this.query.pageIndex - 1) * this.query.pageSize;
+                let end = start + this.query.pageSize;
+                if (row.userId === 2020000001) {
+                    this.$message({
+                        type: 'info',
+                        message: '无法删除管理员'
+                    });
+                    return false;
+                }
+                this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    deleteUser('/l3/deleteUser', row.userId).then(result => {
+                        if (result.data) {
+                            this.tableData.splice(index, 1)
+                            this.allData.splice(start + index, 1)
+                            allUserContent.tableData = this.allData.slice(start, end);
+                            if (allUserContent.tableData.length === 0) {
+                                start = (this.query.pageIndex - 2) * this.query.pageSize;
+                                allUserContent.tableData = this.allData.slice(start, end);
+                            }
+                        }
+                    })
+                    this.$message({
+                        type: 'success',
+                        message: '删除成功!'
+                    });
+
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            },
+            //拉入黑名单信息
+            async handleIn(index, row) {
+                if (row.userId === 2020000001 || row.userId === "2020000001") {
+                    this.$message({
+                        type: 'info',
+                        message: '无法把管理员拉入黑名单'
+                    });
+                    return false;
+                }
+                this.$confirm('是否将' + row.username + '拉入黑名单', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    updateMode('/l3/updateUserMode', row.userId, 1).then(result => {
+                        if (result.data) {
+                            row.mode = 1;
+                        }
+                    })
+                    this.$message({
+                        type: 'success',
+                        message: '拉入成功!'
+                    });
+
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消拉入'
+                    });
+                });
+            },
+            //拉出黑名单
+            async handleOut(index, row) {
+                this.$confirm('是否将' + row.username + '拉出黑名单', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    updateMode('/l3/updateUserMode', row.userId, 0).then(result => {
+                        if (result.data) {
+                            row.mode = 0;
+                        }
+                    })
+                    this.$message({
+                        type: 'success',
+                        message: '拉出成功!'
+                    });
+
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消拉出'
+                    });
+                });
+            },
+
+            //获取所有用户
+            findAllUser: function () {
+                console.log('获取所有用户')
+                var info = axios.get("/l3/findAllUser");
+                return info.then(result => {
+                    allUserContent.allData = result.data;
+                    let start = (this.query.pageIndex - 1) * this.query.pageSize;
+                    let end = start + this.query.pageSize;
+                    allUserContent.tableData = this.allData.slice(start, end);
+                })
+
+            },
+            //点击页码
+            handleCurrentChange(value) {
+                this.query.pageIndex = value;//获得当前页码
+                let start = (this.query.pageIndex - 1) * this.query.pageSize;
+                let end = start + this.query.pageSize;
+                if (this.search) {
+                    allUserContent.temp = this.searchData.slice(start, end);
+                } else {
+                    allUserContent.tableData = this.allData.slice(start, end);
+                }
+            },
+            countAge(row, column) {
+                var strAge = row.userBirthday;
+                var birArr = strAge.split("-");
+                var birYear = birArr[0];
+                var birMonth = birArr[1];
+                var birDay = birArr[2];
+
+                d = new Date();
+                var nowYear = d.getFullYear();
+                var nowMonth = d.getMonth() + 1; //记得加1
+                var nowDay = d.getDate();
+                var returnAge;
+
+                if (birArr == null) {
+                    return -1
+                }
+                ;
+                var d = new Date(birYear, birMonth - 1, birDay);
+                if (d.getFullYear() == birYear && (d.getMonth() + 1) == birMonth && d.getDate() == birDay) {
+                    if (nowYear == birYear) {
+                        returnAge = 0; //
+                    } else {
+                        var ageDiff = nowYear - birYear; //
+                        if (ageDiff > 0) {
+                            if (nowMonth == birMonth) {
+                                var dayDiff = nowDay - birDay; //
+                                if (dayDiff < 0) {
+                                    returnAge = ageDiff - 1;
+                                } else {
+                                    returnAge = ageDiff;
+                                }
+                            } else {
+                                var monthDiff = nowMonth - birMonth; //
+                                if (monthDiff < 0) {
+                                    returnAge = ageDiff - 1;
+                                } else {
+                                    returnAge = ageDiff;
+                                }
+                            }
+                        } else {
+                            return -1
+                        }
+                    }
+                    return returnAge;
+                } else {
+                    return -1;
+                }
+            }
+        },
+
+        mounted() {
+            this.findAllUser();
+        },
+        watch: {
+            search: function (val) {
+                this.temp = [];
+            }
+        },
+        computed: {
+            //计算搜索的
+            tables() {
+                this.query.pageIndex = 1;
+                const search = this.search
+                this.dataLength = 0
+                let a;
+                if (search) {
+                    this.searchData = [];
+                    this.allData.filter(data => {
+                        let flag;
+                        if ("黑名单".includes(search)) {
+                            flag = (data.mode + "").toLowerCase().includes("1".toLowerCase());
+                        } else if ("正常".includes(search)) {
+                            flag = (data.mode + "").toLowerCase().includes("0".toLowerCase());
+                        } else {
+                            flag = (data.userId + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.username + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.articleNoPass + "").toLowerCase().includes(search.toLowerCase()) ||
+                                (data.articleAll + "").toLowerCase().includes(search.toLowerCase())
+
+                        }
+                        if (flag) {
+                            ++this.dataLength;
+                            if (this.temp.length < this.query.pageSize) {
+                                this.temp.push(data);
+                            }
+                            this.searchData.push(data);
+                        }
+                    });
+                    while (
+                        (this.temp.length > 1 && this.temp[1] === this.searchData[0]) ||
+                        (this.temp.length > 2 && this.temp[2] === this.searchData[0]) ||
+                        (this.temp.length > 3 && this.temp[3] === this.searchData[0]) ||
+                        (this.temp.length > 4 && this.temp[4] === this.searchData[0])
+                        ) {
+                        this.temp.pop();
+                    }
+                    return this.temp;
+                }
+                this.dataLength = this.allData.length
+                return this.tableData
+            },
+
+        }
+    })
+</script>
+</html>
